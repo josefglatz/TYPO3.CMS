@@ -33,6 +33,7 @@ use TYPO3\CMS\Core\Type\Bitmask\Permission;
 use TYPO3\CMS\Core\TypoScript\TypoScriptService;
 use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\VersionNumberUtility;
 use TYPO3\CMS\Lang\LanguageService;
 
 /**
@@ -462,6 +463,17 @@ class RecordList extends AbstractModule
             $title = $this->pageinfo['title'];
         }
         $this->body = $this->moduleTemplate->header($title);
+
+        // Custom hook RecordList header BEGIN
+        $isVersion9Up = VersionNumberUtility::convertVersionNumberToInteger(TYPO3_version) >= 9000000;
+        if (!$isVersion9Up) {
+            foreach ($GLOBALS['TYPO3_CONF_VARS']['SC_OPTIONS']['recordlist/Modules/Recordlist/index.php']['drawHeaderHook'] ?? [] as $hook) {
+                $params = [];
+                $this->body .= GeneralUtility::callUserFunction($hook, $params, $this);
+            }
+        }
+        // Custom hook RecordList header END
+        
         $this->moduleTemplate->setTitle($title);
 
         if (!empty($dblist->HTMLcode)) {
